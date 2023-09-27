@@ -2,6 +2,9 @@
 #define clox_vm_h
 
 #include "chunk.h"
+#include "value.h"
+
+#define STACK_MAX 256
 
 typedef struct
 {
@@ -10,6 +13,10 @@ typedef struct
     // instruction pointer
     // points to the instruction about to be executed
     uint8_t* ip;
+    Value stack[STACK_MAX];
+    
+    // stackTop points to the value just above the 'freshest' value
+    Value* stackTop;
 } VM;
 
 // runtime report errors

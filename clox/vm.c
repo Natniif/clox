@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include "common.h"
+#include "debug.h"
 #include "vm.h"
 
 VM vm; 
 
-void initVM() {
+static void resetStack() {
+    vm.stackTop = vm.stack;
+}
 
+void initVM() {
+    resetStack();
 }
 
 void freeVM() {
@@ -21,6 +26,11 @@ static InterpretResult run() {
 
     for (;;) {
 
+        // debug options
+        #ifdef DEBUG_TRACE_EXECUTIONi
+            // get ip to point to relative offset from beginning of bytecode
+            disassembleInstrusction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+        #endif
 
         uint8_t instruction; 
         switch(instruction = READ_BYTE()) {
