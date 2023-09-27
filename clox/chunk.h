@@ -9,7 +9,7 @@ typedef enum {
     OP_RETURN,
 } OpCode;
 
-// chunk of data that is sent to the CPU cache as instructions
+// chunk of data represents all the data that is sent to the CPU as instructions
 // needs to be dynamic since we dont know how big the instruction has to be
 // When we add an element, if the count is less than the capacity, 
     // then there is already available space in the array. 
