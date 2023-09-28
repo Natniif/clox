@@ -105,10 +105,6 @@ static void emitReturn() {
     emitByte(OP_RETURN);
 }
 
-static void emitConstant(Value value) {
-    emitBytes(OP_CONSTANT, makeConstant(value));
-}
-
 // add constant adds given value to end of chunk's constant table and returns the index
 // this function also makes sure we dont have too many constants 
 static uint8_t makeConstant(Value value) {
@@ -120,6 +116,10 @@ static uint8_t makeConstant(Value value) {
 
     // cast to 8 bit int
     return (uint8_t)constant;
+}
+
+static void emitConstant(Value value) {
+    emitBytes(OP_CONSTANT, makeConstant(value));
 }
 
 static void endCompiler() {
@@ -141,7 +141,7 @@ static void binary() {
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
     // cast 
-    parserPrecedence((Precedence)(rule->precedence+1));
+    parsePrecedence((Precedence)(rule->precedence+1));
 
     switch (operatorType) {
         case TOKEN_PLUS:          emitByte(OP_ADD); break;
@@ -254,7 +254,8 @@ static void expression() {
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
-void compile(const char* source, Chunk* chunk) {
+// will need to change type of function at some point
+bool compile(const char* source, Chunk* chunk) {
     initScanner(source);
     compilingChunk = chunk; // shouldnt this be a reference to chunk? 
 

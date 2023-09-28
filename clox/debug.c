@@ -17,6 +17,22 @@ static int simpleInstruction(const char* name, int offset) {
     return offset + 1;
 }
 
+/*
+As with OP_RETURN, we print out the name of the opcode
+Then we pull out the constant index from the subsequent byte in the chunk
+We print that index and look up the value and display the value itself too
+*/
+static int constantInstruction(const char* name, Chunk* chunk, int offset) {
+    // constant value is offset of one from the opcode
+    uint8_t constant = chunk->code[offset + 1];
+    printf("%-16s %4d '", name, constant);
+    printValue(chunk->constants.values[constant]);
+    printf("'\n");
+    // offset by two since the OP_CONSTANT has two bytes
+        // - one for the opcode and one for the operand
+    return offset + 2;
+}
+
 // prints out opcode as well as the offset
 int disassembleInstruction(Chunk* chunk, int offset) {
     printf("%04d ", offset);
@@ -44,18 +60,3 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 }
 
 
-/*
-As with OP_RETURN, we print out the name of the opcode
-Then we pull out the constant index from the subsequent byte in the chunk
-We print that index and look up the value and display the value itself too
-*/
-static int constantInstruction(const char* name, Chunk* chunk, int offset) {
-    // constant value is offset of one from the opcode
-    uint8_t constant = chunk->code[offset + 1];
-    printf("%-16s %4d '", name, constant);
-    printValue(chunk->constants.values[constant]);
-    printf("'\n");
-    // offset by two since the OP_CONSTANT has two bytes
-        // - one for the opcode and one for the operand
-    return offset + 2;
-}
