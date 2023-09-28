@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "cstdlib": "c",
-    "locale": "c"
+    "locale": "c",
+    "debug.h": "c"
   }
 }
