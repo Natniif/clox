@@ -33,10 +33,11 @@ static void runtimeError(const char* format, ...) {
 
 void initVM() {
     resetStack();
+    vm.objects = NULL;
 }
 
 void freeVM() {
-
+    freeObjects();
 }
 
 Value pop() {
@@ -92,9 +93,9 @@ static InterpretResult run() {
     for (;;) {
 
         // debug options
-        #ifdef DEBUG_TRACE_EXECUTIONi
+        #ifdef DEBUG_TRACE_EXECUTION
             // get ip to point to relative offset from beginning of bytecode
-            disassembleInstrusction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+            // disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
         #endif
 
         uint8_t instruction; 
@@ -146,6 +147,7 @@ static InterpretResult run() {
                 break;
             case OP_RETURN: {
                 return INTERPRET_OK;
+                break;
             }
         }
     }

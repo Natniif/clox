@@ -22,6 +22,7 @@ typedef enum {
 // already typedef'd in value.h
 struct Obj {
     ObjType type;
+    struct Obj* next;
 };
 
 struct ObjString {
