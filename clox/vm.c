@@ -1,7 +1,14 @@
+#include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+
 #include "common.h"
+#include "memory.h"
+#include "object.h"
+#include "compiler.h"
 #include "debug.h"
 #include "vm.h"
+#include "value.h"
 
 VM vm; 
 
@@ -9,27 +16,62 @@ static void resetStack() {
     vm.stackTop = vm.stack;
 }
 
-void initVM() {
+static void runtimeError(const char* format, ...) {
+    // args represents the ... in the function input
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    // failed instruction is previous one which is why we use -1 here
+    size_t instruction = vm.ip - vm.chunk->code - 1;
+    int line = vm.chunk->lines[instruction];
+    fprintf(stderr, "[line %d] in script\n", line);
     resetStack();
 }
 
-void freeVM() {
-
+void initVM() {
+    resetStack();
+    vm.objects = NULL;
 }
 
-void push(Value value) {
-    // points the stackTop to value 
-    *vm.stackTop = value;
-    // increments stackTop pointer by one since it needs to point one past the top
-    vm.stackTop++;
+void freeVM() {
+    freeObjects();
 }
 
 Value pop() {
-    // move stack pointer down one value
     vm.stackTop--;
-    // return -1 stackTop pointer
     return *vm.stackTop;
 }
+
+void push(Value value) {
+  *vm.stackTop = value;
+  vm.stackTop++;
+}
+
+static Value peek(int distance) {
+    return vm.stackTop[-1 - distance];
+}
+
+static bool isFalsey(Value value) {
+    return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
+static void concatenate() {
+    ObjString* b = AS_STRING(pop());
+    ObjString* a = AS_STRING(pop());
+
+    int length = a->length + b->length;
+    char* chars = ALLOCATE(char, length + 1);
+    memcpy(chars, a->chars, a->length);
+    memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
+
+    ObjString* result = takeString(chars, length);
+    push(OBJ_VAL(result));
+}
+
 
 static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++) // reads byte pointed at by ip then advances it
@@ -37,14 +79,17 @@ static InterpretResult run() {
 // reads next byte from teh bytecode, treats the resulting number as an index
     // and looks up the corresponding Value in the chunk's constant table.
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-
-// b has to be popped first due to the way stack is set with left operand deeper
-#define BINARY_OP(op) \
+#define BINARY_OP(valueType, op) \
     do { \
-        double b = pop(); \
-        double a = pop(); \
-        push(a op b); \
+      if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
+        runtimeError("Operands must be numbers."); \
+        return INTERPRET_RUNTIME_ERROR; \
+      } \
+      double b = AS_NUMBER(pop()); \
+      double a = AS_NUMBER(pop()); \
+      push(valueType(a op b)); \
     } while (false)
+// b has to be popped first due to the way stack is set with left operand deeper
 
     for (;;) {
 
@@ -60,6 +105,8 @@ static InterpretResult run() {
             printf("\n");
 
             disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+            // get ip to point to relative offset from beginning of bytecode
+            // disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
         #endif
 
         uint8_t instruction; 
@@ -69,16 +116,50 @@ static InterpretResult run() {
                 push(constant);
                 break; 
             }
-            case OP_ADD:      BINARY_OP(+); break;
-            case OP_SUBTRACT: BINARY_OP(-); break;
-            case OP_MULTIPLY: BINARY_OP(*); break;
-            case OP_DIVIDE:   BINARY_OP(/); break;
-            // pushes negative of popped stack onto top of stack again
-            case OP_NEGATE: push(-pop()); break;
+            case OP_NIL: push(NIL_VAL); break;
+            case OP_TRUE: push(BOOL_VAL(true)); break;
+            case OP_FALSE: push(BOOL_VAL(false)); break;
+            case OP_EQUAL: {
+                Value b = pop();
+                Value a = pop();
+                push(BOOL_VAL(valuesEqual(a, b)));
+                break;
+            }
+            case OP_GREATER:  BINARY_OP(BOOL_VAL, >); break;
+            case OP_LESS:     BINARY_OP(BOOL_VAL, <); break;
+            // logic for adding strings needed
+            case OP_ADD: {
+                if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
+                    concatenate();
+                }  else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+                    double b = AS_NUMBER(pop());
+                    double a = AS_NUMBER(pop());
+                    push(NUMBER_VAL(a + b));
+                } else {
+                    runtimeError(
+                        "Operands must be two numbers or two strings.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
+            case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
+            case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
+            case OP_DIVIDE:   BINARY_OP(NUMBER_VAL, /); break;
+            case OP_NOT: 
+                push(BOOL_VAL(isFalsey(pop())));
+                break;
+            case OP_NEGATE: 
+                if(!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(NUMBER_VAL(-AS_NUMBER(pop())));
+                break;
             case OP_RETURN: {
                 printValue(pop());
                 printf("\n");
                 return INTERPRET_OK;
+                break;
             }
         }
     }
@@ -87,11 +168,21 @@ static InterpretResult run() {
 #undef BINARY_OP
 }
 
-// calls the code that the ip points to 
-InterpretResult interpret(Chunk* chunk) {
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
+InterpretResult interpret(const char* source) {
+    Chunk chunk; 
+    initChunk(&chunk);
 
-    // run the bytecode
-    return run();
+    if (!compile(source, &chunk)) {
+        freeChunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+    
+    InterpretResult result = run(); 
+
+    freeChunk(&chunk);
+    return result;
 }
+

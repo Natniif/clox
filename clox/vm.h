@@ -17,6 +17,8 @@ typedef struct
     
     // stackTop points to the value just above the 'freshest' value
     Value* stackTop;
+
+    Obj* objects;
 } VM;
 
 // runtime report errors
@@ -26,11 +28,15 @@ typedef enum {
     INTERPRET_RUNTIME_ERROR, 
 } InterpretResult;
 
-InterpretResult interpret(Chunk* chunk);
-void push(Value value);
-Value pop();
+extern VM vm;
 
 void initVM();
 void freeVM();
+
+InterpretResult interpret(const char* source);
+void push(Value value);
+Value pop();
+
+
 
 #endif
