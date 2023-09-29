@@ -1,6 +1,20 @@
 {
   "files.associations": {
     "cstdlib": "c",
-    "locale": "c"
+    "locale": "c",
+    "__bit_reference": "c",
+    "__node_handle": "c",
+    "atomic": "c",
+    "bitset": "c",
+    "chrono": "c",
+    "cstddef": "c",
+    "__memory": "c",
+    "limits": "c",
+    "optional": "c",
+    "ratio": "c",
+    "system_error": "c",
+    "tuple": "c",
+    "type_traits": "c",
+    "vector": "c"
   }
 }
