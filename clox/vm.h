@@ -26,13 +26,12 @@ typedef enum {
     INTERPRET_RUNTIME_ERROR, 
 } InterpretResult;
 
-void initVM();
-void freeVM();
-
-InterpretResult interpret(const char* source);
+InterpretResult interpret(Chunk* chunk);
 void push(Value value);
 Value pop();
 
+void initVM();
+void freeVM();
 
 
 #endif

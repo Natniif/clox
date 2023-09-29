@@ -62,7 +62,7 @@ static char* readFile(const char* path) {
     return buffer;
 }
 
-static void runFIle(const char* path) {
+static void runFile(const char* path) {
     char* source = readFile(path);
     InterpretResult result = interpret(source);
     free(source);
