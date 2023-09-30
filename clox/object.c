@@ -3,6 +3,7 @@
 
 #include "memory.h"
 #include "object.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
 
@@ -24,6 +25,7 @@ static ObjString* allocateString(char* chars, int length, uint32_t hash) {
     string->length = length; 
     string->chars = chars;
     string->hash = hash;
+    tableSet(&vm.strings, string, NIL_VAL);
     return string;
 }
 
@@ -34,11 +36,17 @@ static uint32_t hashString(const char* key, int length) {
         hash ^= (uint32_t)key[i];
         hash *= 16777619;
     }
-    return hash
+    return hash;
 }
 
 ObjString* copyString(const char* chars, int length) {
     uint32_t hash = hashString(chars, length);
+    // when copying string into new LoxString, we look up 
+        // in string table first
+    // if we find it, instead of copying, we just return reference to that string
+    ObjString* interned = tableFindString(&vm.strings, chars, length, 
+    hash);
+    if (interned != NULL) return interned;
     char* heapChars = ALLOCATE(char, length + 1);
     // copy chars to heapChars of 'length' bytes
     memcpy(heapChars, chars, length);
@@ -57,5 +65,11 @@ void printObject(Value value) {
 
 ObjString* takeString(char* chars, int length) {
     uint32_t hash = hashString(chars, length);
+    ObjString* interned = tableFindString(&vm.strings, chars, length,
+    hash);
+    if (interned != NULL) {
+        FREE_ARRAY(char, chars, length + 1);
+        return interned;
+    }
     return allocateString(chars, length, hash);
 }
