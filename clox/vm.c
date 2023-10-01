@@ -145,6 +145,17 @@ static InterpretResult run() {
                 pop(); 
                 break;
             }
+            case OP_SET_GLOBAL: {
+                // if key doesnt exist in global has table it runtime error to assign it 
+                ObjString* name = READ_STRING();
+                if (tableSet(&vm.globals, name, peek(0))) {
+                    // delete zombie value
+                    tableDelete(&vm.globals, name); 
+                    runtimeError("Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                break;
+            }
             case OP_EQUAL: {
                 Value b = pop();
                 Value a = pop();
