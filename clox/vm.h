@@ -18,6 +18,7 @@ typedef struct
     
     // stackTop points to the value just above the 'freshest' value
     Value* stackTop;
+    Table globals;
     Table strings;
 
     Obj* objects;

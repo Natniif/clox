@@ -204,6 +204,21 @@ static void string() {
                                     parser.previous.length - 2)));
 }
 
+static uint8_t identifierConstant(Token* name) {
+    // adds lexeme to chunk's constant table as string
+    // then returns index of that constant in teh constant table
+    return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
+}
+
+static void namedVariable(Token name) {
+    uint8_t arg = identifierConstant(&name);
+    emitBytes(OP_GET_GLOBAL, arg);
+}
+
+static void variable() {
+    namedVariable(parser.previous);
+}
+
 static void unary() {
     TokenType operatorType = parser.previous.type;
 
@@ -238,8 +253,8 @@ ParseRule rules[] = {
   [TOKEN_GREATER_EQUAL] = {NULL,     binary, PREC_COMPARISON},
   [TOKEN_LESS]          = {NULL,     binary, PREC_COMPARISON},
   [TOKEN_LESS_EQUAL]    = {NULL,     binary, PREC_COMPARISON},
-  [TOKEN_IDENTIFIER]    = {NULL,     NULL,   PREC_NONE},
-  [TOKEN_STRING]        = {string,     NULL, PREC_NONE},
+  [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
+  [TOKEN_STRING]        = {string,   NULL, PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
   [TOKEN_AND]           = {NULL,     NULL,   PREC_NONE},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
@@ -260,7 +275,6 @@ ParseRule rules[] = {
   [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
 };
-
 
 // starts at current token and parses any expression at the given precedence level or higher
 static void parsePrecedence(Precedence precedence) {
@@ -285,6 +299,16 @@ static void parsePrecedence(Precedence precedence) {
     }
 }
 
+static uint8_t parseVariable(const char* errorMessage) {
+    // requires next token to be an identifier
+    consume(TOKEN_IDENTIFIER, errorMessage); 
+    return identifierConstant(&parser.previous);
+}
+
+static void defineVariable(uint8_t global) {
+    emitBytes(OP_DEFINE_GLOBAL, global);
+}
+
 // returns rule at given index
 static ParseRule* getRule(TokenType type) {
     return &rules[type];
@@ -292,6 +316,20 @@ static ParseRule* getRule(TokenType type) {
 
 static void expression() {
     parsePrecedence(PREC_ASSIGNMENT);
+}
+
+static void varDeclaration() {
+    uint8_t global = parseVariable("Expect variable name.");
+
+    if (match(TOKEN_EQUAL)) {
+        expression();
+    } else {
+        // if just var variable; with no = then = nil
+        emitByte(OP_NIL);
+    }
+    consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
+
+    defineVariable(global);
 }
 
 // expression statement is an expression followed by a semicolon
@@ -333,9 +371,13 @@ static void synchronize() {
 }
 
 static void declaration() {
-    statement(); 
+    if (match(TOKEN_VAR)) {
+        varDeclaration();
+    } else {
+        statement();
+    }
 
-    if (parser.panicMode) syncronize();
+    if (parser.panicMode) synchronize();
 }
 
 static void statement() {
