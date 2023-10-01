@@ -248,7 +248,7 @@ static uint8_t identifierConstant(Token* name) {
     return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
-static bool identifieersEqual(Token* a, Token* b) {
+static bool identifiersEqual(Token* a, Token* b) {
     if (a->length != b->length) return false;
     return memcmp(a->start, b->start, a->length) == 0;
 }
@@ -258,6 +258,12 @@ static int resolveLocal(Compiler* compiler, Token* name) {
     for (int i = compiler->localCount - 1; i >= 0; i--) {
         Local* local = &compiler->locals[i];
         if (identifiersEqual(name, &local->name)) {
+            // if variable has sentinel depth, it must
+            // be reference to variable in its own 
+            // intializer and we throw error
+            if (local->depth == -1) {
+                error("Can't read local variable in its own initializer");
+            }
             return i;
         }
     }
@@ -274,6 +280,8 @@ static void addLocal(Token name) {
 
     Local* local = &current->locals[current->localCount++];
     local->name = name;
+    // mark depth as sentine - 1 depth since it has not been initialized yet
+    local->depth = -1;
     local->depth = current->scopeDepth;
 }
 
@@ -422,8 +430,14 @@ static uint8_t parseVariable(const char* errorMessage) {
     return identifierConstant(&parser.previous);
 }
 
+static void markInitialized() {
+    current->locals[current->localCount - 1].depth = current->scopeDepth;
+}
+
 static void defineVariable(uint8_t global) {
     if (current->scopeDepth > 0) {
+        // once variable initializer been compiled we mark it initialized
+        markInitialized();
         return;
     }
 
