@@ -6,7 +6,7 @@ Each branch represents each chapter in the book so you can see how the book buil
 
 Syntax is similar to C and is intended to work as an object oriented language (with classes implementation coming soon!) 
 
-```
+```C
 message = "Hello world!";
 isTrue = true;
 
