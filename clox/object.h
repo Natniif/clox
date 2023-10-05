@@ -2,6 +2,7 @@
 #define clox_object_h
 
 #include "common.h"
+#include "chunk.h"
 #include "value.h"
 
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
@@ -16,6 +17,7 @@
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 
 typedef enum {
+    OBJ_FUNCTION,
     OBJ_STRING,
 } ObjType;
 
@@ -25,6 +27,13 @@ struct Obj {
     struct Obj* next;
 };
 
+typedef struct {
+    Obj obj; 
+    int arity; // number of parameters the function expects
+    Chunk chunk;
+    ObjString* name;
+} ObjFunction;
+
 struct ObjString {
     Obj obj;
     int length; 
@@ -32,6 +41,7 @@ struct ObjString {
     uint32_t hash;
 };
 
+ObjFunction newFunction();
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
