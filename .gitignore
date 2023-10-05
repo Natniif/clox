@@ -1,3 +1,5 @@
 ./main
 ./vscode/
 ./*.o
+./ed.hup
+./go.sh
