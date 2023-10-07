@@ -49,7 +49,8 @@ typedef enum {
     TYPE_SCRIPT
 } FunctionType;
 
-typedef struct {
+typedef struct Compiler {
+    struct Compiler* enclosing;
     ObjFunction* function; 
     FunctionType type;
 
@@ -219,12 +220,17 @@ static void patchJump(int offset) {
 }
 
 static void initCompiler(Compiler* compiler, FunctionType type) {
+    compiler->enclosing = current;
     compiler->function = NULL;
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0; 
     compiler->function = newFunction();
     current = compiler;
+
+    if (type != TYPE_SCRIPT) {
+        current->function->name = copyString(parser.previous.start, parser.previous.length);
+    }
 
     // claim local slot 0 for internal use
     Local* local = &current->locals[current->localCount++];
@@ -291,6 +297,11 @@ static void binary(bool canAssign) {
         case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
         default: return; // Unreachable.
     }
+}
+
+static void call(bool canAssign) {
+    uint8_t argCount = argumentList(); 
+    emitBytes(OP_CALL, argCount);
 }
 
 static void literal(bool canAssign) {
@@ -480,6 +491,7 @@ static uint8_t parseVariable(const char* errorMessage) {
 }
 
 static void markInitialized() {
+    if (current->scopeDepth == 0) return;
     current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
@@ -493,6 +505,21 @@ static void defineVariable(uint8_t global) {
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
+static uint8_t argumentList() {
+    uint8_t argCount = 0; 
+    if (!check(TOKEN_RIGHT_PAREN)) {
+        do {
+            expression(); 
+            if (argCount == 255) {
+                error("Can't have more than 255 arguments.");
+            }
+            argCount++;
+        } while (match(TOKEN_COMMA));
+    }
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments");
+    return argCount;
+}
+
 static void and_(bool canAssign) {
     int endJump = emitJump(OP_JUMP_IF_FALSE); 
 
@@ -503,7 +530,7 @@ static void and_(bool canAssign) {
 }
 
 ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, NULL,   PREC_NONE},
+  [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_NONE},
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
   [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
   [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
@@ -559,6 +586,38 @@ static void block() {
         declaration(); 
     } 
     consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
+}
+
+static void function(FunctionType type) {
+    Compiler compiler; 
+    initCompiler(&compiler, type);
+    beginScope(); 
+
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
+    if (!check(TOKEN_RIGHT_PAREN)) {
+        // do loop ensures it at least runs once
+        do {
+            current->function->arity++;
+            if (current->function->arity > 255) {
+                errorAtCurrent("Cant have more than 255 parameters.");
+            }
+            uint8_t constant = parseVariable("Expect parameter name.");
+            defineVariable(constant);
+        } while (match(TOKEN_COMMA));
+    }
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after function name.");
+    consume(TOKEN_LEFT_BRACE, "Expect '{' after function name.");
+    block();
+
+    ObjFunction* function = endCompiler(); 
+    emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
+}
+
+static void funDeclaration() {
+    uint8_t global = parseVariable("Expect function name.");
+    markInitialized(); 
+    function(TYPE_FUNCTION);
+    defineVariable(global);
 }
 
 static void varDeclaration() {
@@ -693,7 +752,9 @@ static void synchronize() {
 }
 
 static void declaration() {
-    if (match(TOKEN_VAR)) {
+    if (match(TOKEN_FUN)) {
+        funDeclaration();
+    } else if (match(TOKEN_VAR)) {
         varDeclaration();
     } else {
         statement();

@@ -12,7 +12,7 @@
 // represents a single ongoig function call
 typedef struct {
     ObjFunction* function; 
-    uint8_t ip; 
+    uint8_t* ip; 
     Value* slots; 
 } CallFrame;
 

@@ -14,7 +14,7 @@
 //valid ObjString on the heap. The first one returns the ObjString* pointer. 
 
 //The second one steps through that to return the character array itself
-#define IS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
+#define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 #define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 

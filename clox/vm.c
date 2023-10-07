@@ -62,6 +62,42 @@ static Value peek(int distance) {
     return vm.stackTop[-1 - distance];
 }
 
+// runs the code inside the function
+static bool call(ObjFunction* function, int argCount) {
+    // check if user is inputting too many arguments into function 
+    if (argCount != function->arity) {
+        runtimeError("Expected %d arguments but got %d.", function->arity, argCount);
+        return false;
+    }
+
+    // need to ensure theat the CallFrames array doesent overflow
+    if (vm.frameCount == FRAMES_MAX) {
+        runtimeError("Stack overflow.");
+        return false;
+    }
+
+    // create new frame
+    CallFrame* frame = &vm.frames[vm.frameCount++];
+    frame->function = function; 
+    frame->ip = function->chunk.code;
+    // -1 is to account for stack slot 0 which the compiler set aside for when we add methods later
+    frame->slots = vm.stackTop - argCount - 1;
+    return true;
+}
+
+static bool callValue(Value callee, int argCount) {
+    if (IS_OBJ(callee)) {
+        switch (OBJ_TYPE(callee)) {
+            case OBJ_FUNCTION: 
+                return call(AS_FUNCTION(callee), argCount);
+            default: 
+                break;
+        }
+    }
+    runtimeError("Can only call functions and classes");
+    return false;
+}
+
 static bool isFalsey(Value value) {
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
@@ -233,6 +269,15 @@ static InterpretResult run() {
                 frame->ip -= offset;
                 break;
             }
+            case OP_CALL: {
+                int argCount = READ_BYTE(); 
+                if (!callValue(peek(argCount), argCount)) {
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                // update frame pointer
+                frame = &vm.frames[vm.frameCount - 1];
+                break;
+            }
             case OP_RETURN: {
                 // Exit interpreter
                 return INTERPRET_OK;
@@ -252,10 +297,7 @@ InterpretResult interpret(const char* source) {
     if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
     push(OBJ_VAL(function));
-    CallFrame* frame = &vm.frames[vm.frameCount++];
-    frame->function = function; 
-    frame->ip = function->chunk.code;
-    frame->slots = vm.stack;
+    call(function, 0);
     
     return run();
 }

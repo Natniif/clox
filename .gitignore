@@ -2,3 +2,4 @@
 ./vscode/
 ./*.o
 ./ed.hup
+./main
