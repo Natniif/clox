@@ -2,4 +2,5 @@
 ./vscode/
 ./*.o
 ./ed.hup
-./go.sh
+./main
+./clox/*.o
