@@ -8,6 +8,9 @@
 #include "object.h"
 #include "chunk.h"
 
+#ifdef DEBUG_PRINT_CODE 
+#include "debug.h"
+#endif
 typedef struct {
     Token current; 
     Token previous;
@@ -244,10 +247,10 @@ static ObjFunction* endCompiler() {
     emitReturn();
     ObjFunction* function = current->function;
 #ifdef DEBUG_PRINT_CODE
-#include "debug.h"
     if (!parser.hadError) {
         // top level defined funcion does not have a name so display <script> if that is the current function
-        disassembleChunk(currentChunk(), function->name != NULL ? function->name->chars : "<script>");
+        char* displayName = function->name != NULL ? function->name->chars : "<script>";
+        disassembleChunk(currentChunk(), displayName);
     }
 #endif
 
@@ -532,7 +535,7 @@ static void and_(bool canAssign) {
 }
 
 ParseRule rules[] = {
-  [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_NONE},
+  [TOKEN_LEFT_PAREN]    = {grouping, call,   PREC_CALL},
   [TOKEN_RIGHT_PAREN]   = {NULL,     NULL,   PREC_NONE},
   [TOKEN_LEFT_BRACE]    = {NULL,     NULL,   PREC_NONE}, 
   [TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},

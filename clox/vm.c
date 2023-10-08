@@ -145,7 +145,8 @@ static InterpretResult run() {
 
 // reads next byte from teh bytecode, treats the resulting number as an index
     // and looks up the corresponding Value in the chunk's constant table.
-#define READ_CONSTANT() (frame->function->chunk.constants.values[READ_BYTE()])
+#define READ_CONSTANT() \
+    (frame->function->chunk.constants.values[READ_BYTE()])
 // yanks next two bytes from chunk and builds a 16-bit unsigned integer out of them
 #define READ_SHORT() \
     (frame->ip += 2, \
