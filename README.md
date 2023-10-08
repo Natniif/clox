@@ -15,7 +15,7 @@ if (message && isTrue) {
 }
 ```
 
-## Usage 
+## Usage
 
 ```
 make
