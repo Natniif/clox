@@ -176,7 +176,7 @@ static InterpretResult run() {
             }
             printf("\n");
 
-            disassembleChunk(&frame->function->chunk, 
+            disassembleInstruction(&frame->function->chunk, 
             (int)(frame->ip - frame->function->chunk.code));
             // get ip to point to relative offset from beginning of bytecode
             // disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));

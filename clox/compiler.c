@@ -251,6 +251,7 @@ static ObjFunction* endCompiler() {
     }
 #endif
 
+    current = current->enclosing;
     return function; 
 }
 
@@ -820,6 +821,4 @@ ObjFunction* compile(const char* source) {
     // if no compiler errors we return function return the function, 
     // else return NULL
     return parser.hadError ? NULL : function;
-
-
 }
