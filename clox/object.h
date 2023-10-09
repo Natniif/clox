@@ -35,6 +35,7 @@ typedef enum {
 // already typin value.h
 struct Obj {
     ObjType type;
+    bool isMarked;
     struct Obj* next;
 };
 

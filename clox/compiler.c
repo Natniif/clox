@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "compiler.h"
+#include "memory.h"
 #include "scanner.h"
 #include "object.h"
 #include "chunk.h"
@@ -895,4 +896,12 @@ ObjFunction* compile(const char* source) {
     // if no compiler errors we return function return the function, 
     // else return NULL
     return parser.hadError ? NULL : function;
+}
+
+void markCompilerRoots() {
+    Compiler* compiler = current;
+    while (compiler != NULL) {
+        markObject((Obj*)compiler->function);
+        compiler = compiler->enclosing;
+    }
 }
