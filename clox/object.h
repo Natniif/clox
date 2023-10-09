@@ -5,6 +5,7 @@
 #include "chunk.h"
 #include "value.h"
 
+#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
@@ -14,6 +15,7 @@
 // These following two macros take a Value that is expected to contain a pointer to a 
 //valid ObjString on the heap. The first one returns the ObjString* pointer. 
 
+#define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
 //The second one steps through that to return the character array itself
 #define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 // extracts the c functin pointer from a value representing a native function
@@ -23,9 +25,11 @@
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 
 typedef enum {
+    OBJ_CLOSURE,
     OBJ_FUNCTION,
     OBJ_NATIVE,
     OBJ_STRING,
+    OBJ_UPVALUE
 } ObjType;
 
 // already typin value.h
@@ -37,6 +41,7 @@ struct Obj {
 typedef struct {
     Obj obj; 
     int arity; // number of parameters the function expects
+    int upvalueCount;
     Chunk chunk;
     ObjString* name;
 } ObjFunction;
@@ -55,12 +60,32 @@ struct ObjString {
     uint32_t hash;
 };
 
+typedef struct ObjUpvalue {
+    Obj obj;
+    Value* location;
+    Value closed;
+    // lined list of next ObjUpvalue
+    struct ObjUpvalue* next;
+} ObjUpvalue;
+
+typedef struct {
+    Obj obj; 
+    ObjFunction* function;
+    // objectClosure does not own the ObjUpvalue array objects themselves
+    // but it owns teh array containing pointers to those upvalues
+    ObjUpvalue** upvalues;
+    int upvalueCount;
+} ObjClosure;
+
+ObjClosure* newClosure(ObjFunction* function);
+
 ObjFunction* newFunction();
 
 ObjNative* newNative(NativeFn function);
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
+ObjUpvalue* newUpvalue(Value* slot);
 
 // we put this outside of the macro for the following reason 
     // macros evaluate the expression for each insance it is called 
