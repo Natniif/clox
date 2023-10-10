@@ -1,6 +1,5 @@
-./main
 ./vscode/
-./*.o
-./ed.hup
-./main
-./clox/*.o
+*.o
+ed.hup
+main
+clox/*.o
