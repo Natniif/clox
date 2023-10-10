@@ -7,7 +7,6 @@
 typedef struct Obj Obj;
 typedef struct ObjString ObjString;
 
-//typedef double Value;
 typedef enum {
     VAL_BOOL, 
     VAL_INT, 
@@ -17,6 +16,7 @@ typedef enum {
     VAL_OBJ
 } ValueType;
 
+typedef double Value;
 typedef struct {
     ValueType type; 
     // we want to have overlapping fields for the 8 bits to show if it is bool or int
@@ -64,4 +64,4 @@ void freeValueArray(ValueArray* array);
 
 void printValue(Value value);
 
-#endif 
+#endif  
