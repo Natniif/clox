@@ -59,11 +59,12 @@ static void blackenObject(Obj* object) {
             }
             break;
         }
-        case OBJ_FUNCTION:
+        case OBJ_FUNCTION: {
             ObjFunction* function = (ObjFunction*)object;
             markObject((Obj*)function->name);
             markArray(&function->chunk.constants);
             break;
+        }
         case OBJ_UPVALUE: 
             markValue(((ObjUpvalue*)object)->closed);
             break;
@@ -194,7 +195,7 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
     }
 
     if (vm.bytesAllocated > vm.nextGC) {
-        collectGabage();
+        collectGarbage();
     }
 
     if (newSize == 0) {

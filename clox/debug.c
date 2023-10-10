@@ -115,7 +115,7 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_CALL:
         return byteInstruction("OP_CALL", chunk, offset);
     case OP_CLOSURE: {
-        offset++; 
+        offset++; // could cause segfault since not checking within bounds still
         uint8_t constant = chunk->code[offset++];
         printf("%-16s %4d ", "OP_CLOSURE", constant);
         printValue(chunk->constants.values[constant]);

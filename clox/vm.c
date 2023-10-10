@@ -212,23 +212,21 @@ static InterpretResult run() {
 // b has to be popped first due to the way stack is set with left operand deeper
 
     for (;;) {
+#ifdef DEBUG_TRACE_EXECUTION 
+        printf("             ");
+        // loops over stack and prints out each value, ending when reach top
+        for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+            printf("[ ");
+            printValue(*slot);
+            printf(" ]");
+        }
+        printf("\n");
 
-        // debug options
-        #ifdef DEBUG_TRACE_EXECUTION 
-            printf("        ");
-            // loops over stack and prints out each value, ending when reach top
-            for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
-                printf("[ ");
-                printValue(*slot);
-                printf(" ]");
-            }
-            printf("\n");
-
-            disassembleInstruction(&frame->closure->function->chunk, 
-            (int)(frame->ip - frame->closure->function->chunk.code));
-            // get ip to point to relative offset from beginning of bytecode
-            // disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
-        #endif
+        disassembleInstruction(&frame->closure->function->chunk, 
+        (int)(frame->ip - frame->closure->function->chunk.code));
+        // get ip to point to relative offset from beginning of bytecode
+        // disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+#endif
 
         uint8_t instruction; 
         switch(instruction = READ_BYTE()) {

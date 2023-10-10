@@ -7,7 +7,6 @@
 typedef struct Obj Obj;
 typedef struct ObjString ObjString;
 
-
 //typedef double Value;
 typedef enum {
     VAL_BOOL, 
