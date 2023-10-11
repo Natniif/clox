@@ -27,8 +27,11 @@ main [file]
 main
 ```
 
-## Planned implementations 
-- [] Switch statements
-- [] Python style f-string interpretation e.g. `print(f"Hello {your_name}");
-- [] static class functions
-- [] abstract class functions
+## Planned implementations 
+
+After I have finished the book I plan to build on the lox language and add the following features
+
+- [ ] Switch statements
+- [ ] Python style f-string interpretation e.g. `print(f"Hello {your_name}");`
+- [ ] static class functions
+- [ ] abstract class functions
