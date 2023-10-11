@@ -26,3 +26,9 @@ main [file]
 // repl mode
 main
 ```
+
+## Planned implementations 
+- [] Switch statements
+- [] Python style f-string interpretation e.g. `print(f"Hello {your_name}");
+- [] static class functions
+- [] abstract class functions
