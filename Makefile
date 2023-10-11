@@ -10,16 +10,16 @@ OBJ = $(SRC:$(SRC_DIR)/%.c=%.o)
 DEPS = $(wildcard $(SRC_DIR)/*.h) 
 
 # The default target is to build the "main" executable
-all: main
+all: lox
 
 # Compile each source file into object files
 %.o: $(SRC_DIR)/%.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Link the object files to create the "main" executable
-main: $(OBJ)
+lox: $(OBJ)
 	$(CC) $(CFLAGS) $^ -o $@
 
 # Clean up intermediate object files
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) lox

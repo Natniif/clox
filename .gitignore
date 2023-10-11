@@ -1,5 +1,5 @@
 ./vscode/
 *.o
 ed.hup
-main
+lox
 clox/*.o

@@ -1,0 +1,5 @@
+This folder contains the test functions and helper functions for the testing
+
+In reality a better way to test these operations would be to add funcitonality into the compiler that could output the bytecode and directly test the correct bytecode (esp for the class, method and closure testing etc).
+
+But that is probably the most boring thing i can imagine so im going with the crude method of testing with direct result from a print statement and if one of the test fails you can just look at the bytecode from running the interpreter with the debug settings.
