@@ -16,7 +16,7 @@ typedef enum {
     VAL_OBJ
 } ValueType;
 
-typedef double Value;
+// typedef double Value;
 typedef struct {
     ValueType type; 
     // we want to have overlapping fields for the 8 bits to show if it is bool or int
