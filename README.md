@@ -31,6 +31,7 @@ main
 
 After I have finished the book I plan to build on the lox language and add the following features
 
+- [ ] Dictionaries/hash tables
 - [ ] Switch statements
 - [ ] Python style f-string interpretation e.g. `print(f"Hello {your_name}");`
 - [ ] static class functions
