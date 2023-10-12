@@ -117,20 +117,20 @@ static bool callValue(Value callee, int argCount) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
             case OBJ_BOUND_METHOD: {
-                ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
-                // get to point to function (have to skip over arguments on stack) 
+               ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
                 vm.stackTop[-argCount - 1] = bound->receiver;
-                if (tableGet(&klass->methods, vm.initString, &initializer)) {
-                return call(AS_CLOSURE(initializer), argCount);
-                } else if (argCount != 0) {
-                    runtimeError("Expected 0 arguments but got %d.", argCount);
-                    return false;
-                }
                 return call(bound->method, argCount);
-            }
+            } 
             case OBJ_CLASS: {
                 ObjClass* klass = AS_CLASS(callee);
                 vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+                Value initializer;
+                if (tableGet(&klass->methods, vm.initString, &initializer)) {
+                    return call(AS_CLOSURE(initializer), argCount);
+                } else if (argCount != 0) {
+                runtimeError("Expect 0 arguments but got %d.", argCount);
+                    return false;
+                }
                 return true;
             }
             case OBJ_CLOSURE: 
