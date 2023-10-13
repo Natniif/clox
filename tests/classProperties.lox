@@ -1,0 +1,8 @@
+class Props {
+    init() {
+        this.hello = "hello";
+    }
+}
+
+var test = Props(); 
+print(test.hello);

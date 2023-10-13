@@ -271,6 +271,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
         local->name.start = "";
         local->name.length = 0;
     }
+
 }
 
 static ObjFunction* endCompiler() {
@@ -499,7 +500,6 @@ static void addLocal(Token name) {
     local->name = name;
     // mark depth as sentine - 1 depth since it has not been initialized yet
     local->depth = -1;
-    local->depth = current->scopeDepth;
     local->isCaptured = false;
 }
 
@@ -792,10 +792,13 @@ static void classDeclaration() {
     // when compiler begins compiling a class, it pushes a new
         // classCompiler onto the implicit linked stack
     ClassCompiler classCompiler; 
-    classCompiler.enclosing = currentClass;
     classCompiler.hasSuperclass = false;
+    classCompiler.enclosing = currentClass;
     currentClass = &classCompiler;
-    
+
+    emitBytes(OP_CLASS, nameConstant);
+    defineVariable(nameConstant);
+
     if (match(TOKEN_LESS)) {
         consume(TOKEN_IDENTIFIER, "Expect superclass name.");
         variable(false);
@@ -803,7 +806,6 @@ static void classDeclaration() {
         if (identifiersEqual(&className, &parser.previous)) {
             error("A class can't inherit from itself.");
         }
-
         // adding synthetic token to super class 
         beginScope(); 
         addLocal(syntheticToken("super"));

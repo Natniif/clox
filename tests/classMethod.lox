@@ -1,9 +1,5 @@
 class Scone {
 
-  init() {
-    this.hello = "hello";
-  } 
-  
   topping(first, second) {
     print "scone with " + first + " and " + second;
   }
