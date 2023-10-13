@@ -1,0 +1,24 @@
+class Zoo {
+
+  ant()    { return  1; }
+  banana() { return  1; }
+  tuna()   { return  1; }
+  hay()    { return  1; }
+  grass()  { return  1; }
+  mouse()  { return  1; }
+}
+
+var zoo = Zoo();
+var sum = 0;
+var start = clock();
+while (sum < 100000000) {
+  sum = sum + zoo.ant()
+            + zoo.banana()
+            + zoo.tuna()
+            + zoo.hay()
+            + zoo.grass()
+            + zoo.mouse();
+}
+
+print clock() - start;
+print sum;

@@ -500,7 +500,6 @@ static void addLocal(Token name) {
     local->name = name;
     // mark depth as sentine - 1 depth since it has not been initialized yet
     local->depth = -1;
-    local->depth = current->scopeDepth;
     local->isCaptured = false;
 }
 
@@ -787,6 +786,9 @@ static void classDeclaration() {
     uint8_t nameConstant = identifierConstant(&parser.previous);
     declareVariable();
 
+    emitBytes(OP_CLASS, nameConstant);
+    defineVariable(nameConstant);
+
     // when compiler begins compiling a class, it pushes a new
         // classCompiler onto the implicit linked stack
     ClassCompiler classCompiler; 
@@ -804,16 +806,15 @@ static void classDeclaration() {
         if (identifiersEqual(&className, &parser.previous)) {
             error("A class can't inherit from itself.");
         }
+        // adding synthetic token to super class 
+        beginScope(); 
+        addLocal(syntheticToken("super"));
+        defineVariable(0);
 
         namedVariable(className, false);
         emitByte(OP_INHERIT);
         classCompiler.hasSuperclass = true;
     }
-
-    // adding synthetic token to super class 
-    beginScope(); 
-    addLocal(syntheticToken("super"));
-    defineVariable(0);
 
     namedVariable(className, false);
     consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
