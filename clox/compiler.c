@@ -789,10 +789,10 @@ static void classDeclaration() {
 
     // when compiler begins compiling a class, it pushes a new
         // classCompiler onto the implicit linked stack
-    ClassCompiler ClassCompiler; 
-    ClassCompiler.enclosing = currentClass;
-    ClassCompiler.hasSuperclass = false;
-    currentClass = &ClassCompiler;
+    ClassCompiler classCompiler; 
+    classCompiler.hasSuperclass = false;
+    classCompiler.enclosing = currentClass;
+    currentClass = &classCompiler;
 
     emitBytes(OP_CLASS, nameConstant);
     defineVariable(nameConstant);
@@ -807,7 +807,7 @@ static void classDeclaration() {
 
         namedVariable(className, false);
         emitByte(OP_INHERIT);
-        ClassCompiler.hasSuperclass = true;
+        classCompiler.hasSuperclass = true;
     }
 
     // adding synthetic token to super class 
@@ -823,7 +823,7 @@ static void classDeclaration() {
     consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
     emitByte(OP_POP);
 
-    if (ClassCompiler.hasSuperclass) {
+    if (classCompiler.hasSuperclass) {
         endScope();
     }
 
