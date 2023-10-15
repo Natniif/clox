@@ -4,7 +4,7 @@ This repository is for educatinoal purposes and is my implementation of the clox
 
 Each branch represents each chapter in the book so you can see how the book builds up the interpreter. 
 
-Syntax is similar to C and is intended to work as an object oriented language (with classes implementation coming soon!) 
+Syntax is similar to C and is intended to work as an object oriented language 
 
 ```C
 message = "Hello world!";
