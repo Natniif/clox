@@ -685,6 +685,7 @@ ParseRule rules[] = {
   [TOKEN_DOT]           = {NULL,     dot,    PREC_CALL},
   [TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
   [TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
+  [TOKEN_COLON]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
   [TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
   [TOKEN_STAR]          = {NULL,     binary, PREC_FACTOR},
@@ -699,6 +700,10 @@ ParseRule rules[] = {
   [TOKEN_IDENTIFIER]    = {variable, NULL,   PREC_NONE},
   [TOKEN_STRING]        = {string,   NULL,   PREC_NONE},
   [TOKEN_NUMBER]        = {number,   NULL,   PREC_NONE},
+  [TOKEN_SWITCH]        = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_CASE]          = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_DEFAULT]       = {NULL,     NULL,   PREC_NONE},
+  [TOKEN_BREAK]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_AND]           = {NULL,     and_,   PREC_AND},
   [TOKEN_CLASS]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_ELSE]          = {NULL,     NULL,   PREC_NONE},
@@ -921,12 +926,35 @@ static void ifStatement() {
     patchJump(elseJump);
 }
 
+static void caseStatement() {
+    consume(TOKEN_COLON, "Expect ':' after literal");
+}
+
+static void defaultStatement() {
+    consume(TOKEN_COLON, "Expect ':' after 'default'");
+}
+
 static void switchStatement() {
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'switch'.");
+    // capture switch statement
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition");
-    
-    statement();
+
+
+    for (;;) {
+
+        if (parser.current.type == TOKEN_CASE) {
+            advance();
+            // compare to switch statement 
+            // if true then caseStatement();
+        } else break;
+        
+    }
+
+    if (parser.current.type == TOKEN_DEFAULT) {
+        advance(); 
+        defaultStatement();
+    }
    
 }
 
@@ -1022,8 +1050,6 @@ static void statement() {
         returnStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();   
-    } else if (match(TOKEN_SWITCH)) {
-        switchStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
         beginScope(); 
         block(); 
