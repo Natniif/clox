@@ -1,0 +1,8 @@
+var x = 10 
+
+switch(x) {
+	case 10: print("correct");
+	case 0: print("wrong");
+	default: 
+		print("default");
+}

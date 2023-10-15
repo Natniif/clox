@@ -1,8 +1,19 @@
 class Scone {
+
   topping(first, second) {
     print "scone with " + first + " and " + second;
   }
+
+  hello() {
+    print("hello");
+  } 
 }
 
 var scone = Scone();
 scone.topping("berries", "cream");
+scone.topping("berries", "cream");
+scone.topping("berries", "cream");
+scone.topping("berries", "cream");
+scone.topping("berries", "cream");
+scone.topping("berries", "cream");
+scone.hello();
