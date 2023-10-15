@@ -921,6 +921,14 @@ static void ifStatement() {
     patchJump(elseJump);
 }
 
+static void switchStatement() {
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'switch'.");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition");
+    
+    statement();
+   
+}
 
 static void printStatement() {
     expression(); 
@@ -1014,6 +1022,8 @@ static void statement() {
         returnStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();   
+    } else if (match(TOKEN_SWITCH)) {
+        switchStatement();
     } else if (match(TOKEN_LEFT_BRACE)) {
         beginScope(); 
         block(); 
