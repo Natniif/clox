@@ -120,24 +120,24 @@ static TokenType identifierType() {
 		case 'a': return checkKeyword(1, 2, "nd", TOKEN_AND);
         case 'b': return checkKeyword(1, 4, "reak", TOKEN_BREAK);
         case 'c': 
-        if (scanner.current - scanner.start > 1) {
-            switch (scanner.start[1]) {
-            return checkKeyword(1, 3, "ase", TOKEN_CASE);
-            return checkKeyword(1, 4, "lass", TOKEN_CLASS);
+            if (scanner.current - scanner.start > 1) {
+                switch (scanner.start[1]) {
+                case 'l': return checkKeyword(2, 3, "ass", TOKEN_CLASS);
+                case 'a': return checkKeyword(2, 2, "se", TOKEN_CASE);
+                }
             }
-        }
         break;
 
-        case 'd': return checkKeyword(1, 6, 'efault', TOKEN_DEFAULT);
+        case 'd': return checkKeyword(1, 6, "efault", TOKEN_DEFAULT);
         case 'e': return checkKeyword(1, 3, "lse", TOKEN_ELSE);
         case 'f':
-        if (scanner.current - scanner.start > 1) {
-            switch (scanner.start[1]) {
-            case 'a': return checkKeyword(2, 3, "lse", TOKEN_FALSE);
-            case 'o': return checkKeyword(2, 1, "r", TOKEN_FOR);
-            case 'u': return checkKeyword(2, 1, "n", TOKEN_FUN);
+            if (scanner.current - scanner.start > 1) {
+                switch (scanner.start[1]) {
+                case 'a': return checkKeyword(2, 3, "lse", TOKEN_FALSE);
+                case 'o': return checkKeyword(2, 1, "r", TOKEN_FOR);
+                case 'u': return checkKeyword(2, 1, "n", TOKEN_FUN);
+                }
             }
-        }
         break;
 
         case 'i': return checkKeyword(1, 1, "f", TOKEN_IF);
@@ -149,7 +149,7 @@ static TokenType identifierType() {
             if(scanner.current - scanner.start > 1) {
                 switch(scanner.start[1]) {
                 case 'u': return checkKeyword(2, 3, "per", TOKEN_SUPER);
-                case 'w': return checkKeyword(2, 4, 'itch', TOKEN_SWITCH);
+                case 'w': return checkKeyword(2, 4, "itch", TOKEN_SWITCH);
                 }
             }
         break;

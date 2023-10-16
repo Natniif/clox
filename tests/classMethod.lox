@@ -1,5 +1,9 @@
 class Scone {
 
+  init() {
+    this.hi = "hi";
+  } 
+
   topping(first, second) {
     print "scone with " + first + " and " + second;
   }
@@ -11,9 +15,6 @@ class Scone {
 
 var scone = Scone();
 scone.topping("berries", "cream");
-scone.topping("berries", "cream");
-scone.topping("berries", "cream");
-scone.topping("berries", "cream");
-scone.topping("berries", "cream");
-scone.topping("berries", "cream");
 scone.hello();
+
+print(scone.hi);
